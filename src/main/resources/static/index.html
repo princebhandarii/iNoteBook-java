@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>iNotebook</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📓</text></svg>">
+<style>
+  :root {
+    --sage: #7E9771;
+    --sage-hover: #657D5A;
+    --cream: #F4F0E6;
+    --card-cream: #EBE6D8;
+    --white: #FFFFFF;
+    --text: #2C3E2D;
+    --border: #D3CEBE;
+    --danger: #A4493D;
+    --danger-hover: #873A30;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; }
+  body {
+    font-family: "Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    line-height: 1.5;
+  }
+  [hidden] { display: none !important; }
+  :focus-visible { outline: 3px solid rgba(126,151,113,.55); outline-offset: 2px; }
+
+  button { font: inherit; cursor: pointer; }
+  .btn {
+    border: 0; border-radius: 8px; padding: .65rem 1.2rem; font-weight: 600;
+    background: var(--sage); color: var(--white); transition: background .15s, transform .1s;
+  }
+  .btn:hover { background: var(--sage-hover); }
+  .btn:active { transform: translateY(1px); }
+  .btn:disabled { opacity: .6; cursor: progress; }
+  .btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--card-cream); }
+  .btn-danger { background: var(--danger); }
+  .btn-danger:hover { background: var(--danger-hover); }
+  .btn-on-sage { background: var(--cream); color: var(--text); }
+  .btn-on-sage:hover { background: var(--white); }
+
+  label { display: block; font-weight: 600; font-size: .9rem; margin: 0 0 .3rem; }
+  input[type=text], input[type=password], textarea {
+    width: 100%; font: inherit; color: var(--text); background: var(--white);
+    border: 1px solid var(--border); border-radius: 8px; padding: .65rem .8rem;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  input:focus, textarea:focus { outline: none; border-color: var(--sage); box-shadow: 0 0 0 3px rgba(126,151,113,.25); }
+  textarea { min-height: 220px; resize: vertical; }
+  .field { margin-bottom: 1rem; }
+
+  #auth-view { min-height: 100vh; display: grid; place-items: center; padding: 1.5rem; }
+  .auth-card {
+    width: 100%; max-width: 400px; background: var(--white); border: 1px solid var(--border);
+    border-radius: 16px; padding: 2.2rem 2rem; box-shadow: 0 10px 30px rgba(44,62,45,.10);
+  }
+  .brand { font-size: 1.9rem; font-weight: 700; letter-spacing: -.02em; margin: 0; color: var(--sage-hover); }
+  .brand-sub { margin: .25rem 0 1.5rem; color: #5b6e5c; }
+  .tabs { display: grid; grid-template-columns: 1fr 1fr; background: var(--card-cream); border-radius: 10px; padding: 4px; margin-bottom: 1.4rem; }
+  .tab { border: 0; background: transparent; padding: .5rem; border-radius: 8px; font-weight: 600; color: var(--text); transition: background .15s, box-shadow .15s; }
+  .tab[aria-selected=true] { background: var(--white); box-shadow: 0 1px 3px rgba(44,62,45,.15); }
+  .auth-card .btn { width: 100%; margin-top: .4rem; }
+  .form-error { min-height: 1.3rem; margin: .6rem 0 0; color: var(--danger); font-size: .9rem; }
+
+  header.top {
+    background: var(--sage); color: var(--white); padding: .85rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    position: sticky; top: 0; z-index: 10; box-shadow: 0 2px 8px rgba(44,62,45,.18);
+  }
+  header.top .brand { color: var(--white); font-size: 1.4rem; }
+  .top-actions { display: flex; align-items: center; gap: .8rem; }
+  .who { opacity: .95; font-size: .95rem; }
+  main { max-width: 1100px; margin: 0 auto; padding: 1.8rem 1.25rem 4rem; }
+  .bar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin-bottom: 1.4rem; flex-wrap: wrap; }
+  .bar h2 { margin: 0; font-size: 1.4rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.1rem; }
+  .note {
+    text-align: left; background: var(--card-cream); color: var(--text); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 1.1rem 1.2rem; min-height: 150px; display: flex; flex-direction: column; gap: .5rem;
+    transition: transform .18s ease, box-shadow .18s ease, background .18s;
+  }
+  .note:hover { transform: translateY(-3px); box-shadow: 0 10px 22px rgba(44,62,45,.16); background: #EFEADC; }
+  .note h3 { margin: 0; font-size: 1.05rem; overflow-wrap: anywhere; }
+  .note p {
+    margin: 0; color: #46594a; overflow-wrap: anywhere; white-space: pre-wrap;
+    display: -webkit-box; -webkit-line-clamp: 5; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .empty {
+    grid-column: 1 / -1; text-align: center; padding: 3rem 1rem; background: var(--white);
+    border: 1px dashed var(--border); border-radius: var(--radius);
+  }
+  .empty p { margin: 0 0 1rem; color: #5b6e5c; }
+
+  .overlay {
+    position: fixed; inset: 0; background: rgba(44,62,45,.45); display: grid; place-items: center;
+    padding: 1rem; z-index: 50; opacity: 0; visibility: hidden; transition: opacity .2s, visibility .2s;
+  }
+  .overlay.open { opacity: 1; visibility: visible; }
+  .modal {
+    width: 100%; max-width: 560px; max-height: 92vh; overflow: auto; background: var(--white);
+    border-radius: 16px; padding: 1.6rem; box-shadow: 0 20px 50px rgba(44,62,45,.3);
+    transform: translateY(14px) scale(.98); transition: transform .22s ease;
+  }
+  .overlay.open .modal { transform: none; }
+  .modal h2 { margin: 0 0 1.1rem; font-size: 1.3rem; }
+  .modal-actions { display: flex; gap: .7rem; align-items: center; margin-top: .4rem; }
+  .modal-actions .spacer { flex: 1; }
+
+  #toast {
+    position: fixed; left: 50%; bottom: 1.5rem; transform: translate(-50%, 20px); background: var(--text); color: var(--cream);
+    padding: .7rem 1.1rem; border-radius: 10px; opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 100;
+    max-width: calc(100vw - 2rem);
+  }
+  #toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  @media (max-width: 520px) {
+    .who { display: none; }
+    .modal-actions { flex-wrap: wrap; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<section id="auth-view" hidden>
+  <div class="auth-card">
+    <h1 class="brand">iNotebook</h1>
+    <p class="brand-sub">Your private notes, always within reach.</p>
+    <div class="tabs" role="tablist">
+      <button class="tab" id="tab-login" role="tab" aria-selected="true">Log in</button>
+      <button class="tab" id="tab-register" role="tab" aria-selected="false">Register</button>
+    </div>
+    <form id="auth-form" novalidate>
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" autocomplete="username" maxlength="50" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" autocomplete="current-password" maxlength="72" required>
+      </div>
+      <p class="form-error" id="auth-error" role="alert"></p>
+      <button type="submit" class="btn" id="auth-submit">Log in</button>
+    </form>
+  </div>
+</section>
+
+<section id="app-view" hidden>
+  <header class="top">
+    <h1 class="brand">iNotebook</h1>
+    <div class="top-actions">
+      <span class="who" id="who"></span>
+      <button class="btn btn-on-sage" id="logout-btn">Log out</button>
+    </div>
+  </header>
+  <main>
+    <div class="bar">
+      <h2>My notes</h2>
+      <button class="btn" id="new-btn">+ New Note</button>
+    </div>
+    <div class="grid" id="grid" aria-live="polite"></div>
+  </main>
+</section>
+
+<div class="overlay" id="overlay" aria-hidden="true">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <h2 id="modal-title">New note</h2>
+    <form id="note-form" novalidate>
+      <div class="field">
+        <label for="note-title">Title</label>
+        <input type="text" id="note-title" maxlength="200" required>
+      </div>
+      <div class="field">
+        <label for="note-content">Content</label>
+        <textarea id="note-content" required></textarea>
+      </div>
+      <p class="form-error" id="note-error" role="alert"></p>
+      <div class="modal-actions">
+        <button type="submit" class="btn" id="save-btn">Save Note</button>
+        <button type="button" class="btn btn-ghost" id="cancel-btn">Cancel</button>
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-danger" id="delete-btn" hidden>Delete</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast" role="status"></div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const state = { mode: 'login', notes: [], editingId: null, user: null };
+
+  async function api(path, options = {}) {
+    const res = await fetch(path, { credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, ...options });
+    if (res.status === 204) return null;
+    let data = null;
+    try { data = await res.json(); } catch (_) {}
+    if (!res.ok) {
+      const err = new Error((data && data.message) || 'Request failed');
+      err.status = res.status;
+      throw err;
+    }
+    return data;
+  }
+
+  let toastTimer;
+  function toast(msg) {
+    const t = $('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2600);
+  }
+
+  function showAuth() {
+    state.user = null;
+    $('app-view').hidden = true;
+    $('auth-view').hidden = false;
+    setMode('login');
+    $('auth-form').reset();
+  }
+  function showApp(username) {
+    state.user = username;
+    $('who').textContent = username;
+    $('auth-view').hidden = true;
+    $('app-view').hidden = false;
+    loadNotes();
+  }
+
+  function setMode(mode) {
+    state.mode = mode;
+    const login = mode === 'login';
+    $('tab-login').setAttribute('aria-selected', login);
+    $('tab-register').setAttribute('aria-selected', !login);
+    $('auth-submit').textContent = login ? 'Log in' : 'Create account';
+    $('password').autocomplete = login ? 'current-password' : 'new-password';
+    $('auth-error').textContent = '';
+  }
+  $('tab-login').onclick = () => setMode('login');
+  $('tab-register').onclick = () => setMode('register');
+
+  $('auth-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const username = $('username').value.trim();
+    const password = $('password').value;
+    const err = $('auth-error');
+    err.textContent = '';
+    if (!username || !password) { err.textContent = 'Enter your username and password.'; return; }
+    const btn = $('auth-submit');
+    btn.disabled = true;
+    try {
+      if (state.mode === 'register') {
+        await api('/api/auth/register', { method: 'POST', body: JSON.stringify({ username, password }) });
+        setMode('login');
+        $('password').value = '';
+        toast('Account created. Log in to continue.');
+      } else {
+        const u = await api('/api/auth/login', { method: 'POST', body: JSON.stringify({ username, password }) });
+        $('auth-form').reset();
+        showApp(u.username);
+      }
+    } catch (ex) {
+      err.textContent = ex.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $('logout-btn').onclick = async () => {
+    try { await api('/api/auth/logout', { method: 'POST' }); } catch (_) {}
+    state.notes = [];
+    closeModal();
+    showAuth();
+  };
+
+  async function loadNotes() {
+    try {
+      state.notes = await api('/api/notes');
+      renderNotes();
+    } catch (ex) {
+      if (ex.status === 401) return showAuth();
+      toast(ex.message);
+    }
+  }
+
+  function renderNotes() {
+    const grid = $('grid');
+    grid.replaceChildren();
+    if (!state.notes.length) {
+      const box = document.createElement('div');
+      box.className = 'empty';
+      const p = document.createElement('p');
+      p.textContent = 'No notes yet. Capture your first thought.';
+      const b = document.createElement('button');
+      b.className = 'btn';
+      b.textContent = '+ New Note';
+      b.onclick = () => openModal(null);
+      box.append(p, b);
+      grid.append(box);
+      return;
+    }
+    for (const n of state.notes) {
+      const card = document.createElement('button');
+      card.type = 'button';
+      card.className = 'note';
+      const h = document.createElement('h3');
+      h.textContent = n.title;
+      const p = document.createElement('p');
+      p.textContent = n.content;
+      card.append(h, p);
+      card.onclick = () => openModal(n);
+      grid.append(card);
+    }
+  }
+
+  let lastFocus = null;
+  function openModal(note) {
+    lastFocus = document.activeElement;
+    state.editingId = note ? note.id : null;
+    $('modal-title').textContent = note ? 'Edit note' : 'New note';
+    $('note-title').value = note ? note.title : '';
+    $('note-content').value = note ? note.content : '';
+    $('note-error').textContent = '';
+    $('delete-btn').hidden = !note;
+    const o = $('overlay');
+    o.classList.add('open');
+    o.setAttribute('aria-hidden', 'false');
+    setTimeout(() => $('note-title').focus(), 50);
+  }
+  function closeModal() {
+    const o = $('overlay');
+    o.classList.remove('open');
+    o.setAttribute('aria-hidden', 'true');
+    state.editingId = null;
+    if (lastFocus && document.contains(lastFocus)) lastFocus.focus();
+  }
+  $('new-btn').onclick = () => openModal(null);
+  $('cancel-btn').onclick = closeModal;
+  $('overlay').addEventListener('mousedown', e => { if (e.target === $('overlay')) closeModal(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && $('overlay').classList.contains('open')) closeModal();
+  });
+
+  $('note-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const title = $('note-title').value.trim();
+    const content = $('note-content').value;
+    const err = $('note-error');
+    err.textContent = '';
+    if (!title) { err.textContent = 'Give your note a title.'; return; }
+    if (!content.trim()) { err.textContent = 'Write something in the note.'; return; }
+    const btn = $('save-btn');
+    btn.disabled = true;
+    try {
+      const editing = state.editingId !== null;
+      await api(editing ? `/api/notes/${state.editingId}` : '/api/notes', {
+        method: editing ? 'PUT' : 'POST',
+        body: JSON.stringify({ title, content })
+      });
+      closeModal();
+      toast(editing ? 'Note updated.' : 'Note saved.');
+      loadNotes();
+    } catch (ex) {
+      if (ex.status === 401) { closeModal(); return showAuth(); }
+      err.textContent = ex.message;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  $('delete-btn').onclick = async () => {
+    if (state.editingId === null) return;
+    if (!confirm('Delete this note permanently? This cannot be undone.')) return;
+    try {
+      await api(`/api/notes/${state.editingId}`, { method: 'DELETE' });
+      closeModal();
+      toast('Note deleted.');
+      loadNotes();
+    } catch (ex) {
+      if (ex.status === 401) { closeModal(); return showAuth(); }
+      $('note-error').textContent = ex.message;
+    }
+  };
+
+  (async () => {
+    try {
+      const u = await api('/api/auth/me');
+      showApp(u.username);
+    } catch (_) {
+      showAuth();
+    }
+  })();
+})();
+</script>
+</body>
+</html>
